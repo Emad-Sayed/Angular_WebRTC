@@ -1,8 +1,10 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, Renderer2 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChatMessage, UserInfo, SignalInfo, PeerData } from './models/myInterfaces';
 import { RtcService } from './service/rtc.service';
 import { ConnectionHandlingService } from './service/connection-handling.service';
+import { ControlContainer } from '@angular/forms';
+import { userInfo } from 'os';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +13,7 @@ import { ConnectionHandlingService } from './service/connection-handling.service
 })
 export class AppComponent {
   title = 'RTC';
-  @ViewChild('videoPlayer', { static: false }) videoPlayer: ElementRef;
+  @ViewChild('videoContainer', { static: false }) videoContainer: ElementRef;
 
   public subscriptions = new Subscription();
 
@@ -27,7 +29,7 @@ export class AppComponent {
 
   public mediaError = (): void => { console.error(`Can't get user media`); };
 
-  constructor(private rtcService: RtcService, private signalR: ConnectionHandlingService) { }
+  constructor(private renderer:Renderer2,private rtcService: RtcService, private signalR: ConnectionHandlingService) { }
 
   ngOnInit() {
     this.messages = new Array();
@@ -55,10 +57,16 @@ export class AppComponent {
 
 
     this.subscriptions.add(this.rtcService.onStream.subscribe((data: PeerData) => {
-      this.userVideo = data.id;
-      this.videoPlayer.nativeElement.srcObject = data.data;
-      this.videoPlayer.nativeElement.load();
-      this.videoPlayer.nativeElement.play();
+      let newVideo=this.renderer.createElement('video');
+      let newH3=this.renderer.createElement('H3') as HTMLElement;
+      newH3.innerHTML=data.id;
+      newVideo.srcObject = data.data;
+      newVideo.hight = 240;
+      newVideo.width = 320;
+      newVideo.load();
+      newVideo.play();
+      this.renderer.appendChild(this.videoContainer.nativeElement,newH3);
+      this.renderer.appendChild(this.videoContainer.nativeElement,newVideo);
     }));
   }
 

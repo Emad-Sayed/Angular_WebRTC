@@ -4,6 +4,7 @@ import { UserInfo, PeerData, SingleOne } from '../models/myInterfaces';
 import { Instance } from 'simple-peer';
 import * as SimplePeer from 'simple-peer';
 import { debug } from 'console';
+import { userInfo } from 'os';
 
 @Injectable({
   providedIn: 'root'
@@ -32,8 +33,12 @@ export class RtcService {
     this.users.next(filteredUsers);
   }
 
-
+  checkIfExistsBefore(id) {
+    let selectedPeer = this.myPeers.find(d => d.client == id);
+    return (selectedPeer) ? true : false;
+  }
   public createPeer(stream, userId: string, initiator: boolean) {
+    if (this.checkIfExistsBefore(userId)) return 
     let currentPeer = new SimplePeer({ initiator, stream });
     let singleOne = new SingleOne(currentPeer, userId);
     this.myPeers.push(singleOne);
@@ -52,7 +57,6 @@ export class RtcService {
   }
   public signalPeer(userId: string, signal: string, stream: any) {
     let selectedPeer = this.myPeers.find(d => d.client == userId);
-    debugger
     const signalObject = JSON.parse(signal);
     if (selectedPeer) {
       selectedPeer.current.signal(signalObject);
